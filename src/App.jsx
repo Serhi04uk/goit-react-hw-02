@@ -3,11 +3,12 @@ import "./App.css";
 import { useState, useEffect } from "react";
 
 import Description from "./components/Description/Description";
-import Option from "./components/Options/Options";
-import Feedback from "./Feedback/Feedback";
+import Options from "./components/Options/Options";
+import Feedback from "./components/Feedback/Feedback";
+import Notification from "./components/Notification/Notification";
 
 function App() {
-  const [change, save] = useState(() => {
+  const [feedback, setFeedback] = useState(() => {
     if (window.localStorage.getItem("key") !== null) {
       return JSON.parse(window.localStorage.getItem("key"));
     }
@@ -18,34 +19,35 @@ function App() {
     };
   });
 
-  const kol = change;
-  const totalFeedback = kol.good + kol.neutral + kol.bad;
-  const procent = Math.round(((kol.good + kol.neutral) / totalFeedback) * 100);
+  const totalFeedback = feedback.good + feedback.neutral + feedback.bad;
+  const positiveFeedbackPercentage = Math.round(
+    ((feedback.good + feedback.neutral) / totalFeedback) * 100
+  );
   useEffect(() => {
-    window.localStorage.setItem("key", JSON.stringify(kol));
-  }, [kol]);
+    window.localStorage.setItem("key", JSON.stringify(feedback));
+  }, [feedback]);
 
   const updateFeedback = (feedbackType) => {
     if (feedbackType === "good") {
-      save({
-        good: change.good + 1,
-        neutral: change.neutral,
-        bad: change.bad,
+      setFeedback({
+        good: feedback.good + 1,
+        neutral: feedback.neutral,
+        bad: feedback.bad,
       });
     } else if (feedbackType === "neutral") {
-      save({
-        good: change.good,
-        neutral: change.neutral + 1,
-        bad: change.bad,
+      setFeedback({
+        good: feedback.good,
+        neutral: feedback.neutral + 1,
+        bad: feedback.bad,
       });
     } else if (feedbackType === "bad") {
-      save({
-        good: change.good,
-        neutral: change.neutral,
-        bad: change.bad + 1,
+      setFeedback({
+        good: feedback.good,
+        neutral: feedback.neutral,
+        bad: feedback.bad + 1,
       });
-    } else {
-      save({
+    } else if (feedbackType === "reset") {
+      setFeedback({
         good: 0,
         neutral: 0,
         bad: 0,
@@ -56,8 +58,15 @@ function App() {
   return (
     <>
       <Description></Description>
-      <Option stayt={kol} updateFeedback={updateFeedback}></Option>
-      <Feedback stayt={kol} total={totalFeedback} procent={procent}></Feedback>
+      <Options total={totalFeedback} updateFeedback={updateFeedback}></Options>
+      {totalFeedback === 0 && <Notification></Notification>}
+      {totalFeedback > 0 && (
+        <Feedback
+          feedback={feedback}
+          total={totalFeedback}
+          positiveFeedbackPercentage={positiveFeedbackPercentage}
+        ></Feedback>
+      )}
     </>
   );
 }
